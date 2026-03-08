@@ -1,0 +1,110 @@
+<div class="page-shell">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Customer feedback sentiment</div>
+      <div class="card-subtitle">
+        Paste customer feedback, then let the agents summarize and classify how the customer feels.
+      </div>
+    </div>
+
+    <div class="pill-row">
+      <span class="pill">Summarizer agent</span>
+      <span class="pill">Sentiment agent + tool</span>
+      <span class="pill">Ollama · llama3.2</span>
+      <span class="pill">LangGraph · FastAPI</span>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="field-label">Customer feedback</div>
+        <textarea
+          class="textarea"
+          [ngModel]="feedbackText()"
+          (ngModelChange)="feedbackText.set($event)"
+          placeholder="For example: “I love how quick your support team was, but the last update made the app slower on my phone...”"
+        ></textarea>
+
+        <div class="actions">
+          <div class="hint">
+            The backend will summarize this text and decide whether the customer is happy or unhappy.
+          </div>
+          <div style="display: flex; gap: 0.5rem">
+            <button class="button-ghost" type="button" (click)="clear()">Clear</button>
+            <button
+              class="button"
+              type="button"
+              [disabled]="isSubmitDisabled()"
+              (click)="onSubmit()"
+            >
+              <span *ngIf="!loading(); else loadingTpl">Analyze feedback</span>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="error()" class="error">
+          {{ error() }}
+        </div>
+      </div>
+
+      <div>
+        <div class="results-card">
+          <div class="results-header">
+            <div>
+              <div class="results-title">Agent verdict</div>
+              <div class="status-row" *ngIf="loading(); else statusTpl">
+                <span class="status-dot"></span>
+                Running multi-agent workflow...
+              </div>
+            </div>
+            <span class="badge">/feedback/analyze</span>
+          </div>
+
+          <ng-container *ngIf="result(); else emptyState">
+            <div style="margin-top: 0.35rem">
+              <span
+                class="sentiment-pill"
+                [ngClass]="{
+                  happy: result()?.sentiment === 'HAPPY',
+                  unhappy: result()?.sentiment === 'UNHAPPY'
+                }"
+              >
+                <span class="sentiment-label">
+                  {{ result()?.sentiment || 'UNKNOWN' }}
+                </span>
+              </span>
+            </div>
+
+            <div class="summary" style="margin-top: 0.6rem">
+              <strong>Summary</strong><br />
+              {{ result()?.summary }}
+            </div>
+
+            <div class="reason" style="margin-top: 0.6rem">
+              <strong>Reasoning</strong><br />
+              {{ result()?.reason }}
+            </div>
+          </ng-container>
+
+          <ng-template #emptyState>
+            <div class="placeholder">
+              No analysis yet. Paste some customer feedback on the left and click
+              <strong>Analyze feedback</strong> to see the summary and sentiment verdict here.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <span>Analyzing...</span>
+</ng-template>
+
+<ng-template #statusTpl>
+  <div class="status-row">
+    <span class="status-dot offline"></span>
+    Waiting for feedback...
+  </div>
+</ng-template>
+
