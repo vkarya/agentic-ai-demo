@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      # Ensure backend can reach Ollama running on the host.
+      - API_BASE=http://host.docker.internal:11434/v1
+      - MODEL_NAME=llama3.2
+      - API_KEY=ollama
+      - CORS_ORIGINS=http://localhost:4200
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
